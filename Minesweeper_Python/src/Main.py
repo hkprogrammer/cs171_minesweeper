@@ -48,7 +48,7 @@ from World import World
 from ManualAI import ManualAI
 from RandomAI import RandomAI
 from MyAI import MyAI
-
+from tqdm import tqdm
 
 def main():
 
@@ -103,8 +103,9 @@ def main():
 			scoreBeg = 0
 			scoreInt = 0
 			scoreExp = 0
+			
 			for dirpath, _, filenames in directory:
-				for filename in filenames:
+				for filename in  tqdm(filenames):
 					f = os.path.join(dirpath, filename)
 
 					world = World(filename=f, aiType=aiType, verbose=verbose, debug=debug)
@@ -112,11 +113,13 @@ def main():
 					score = world.run()
 					if score == 1:
 						scoreBeg += 1
+						
 					elif score == 2:
 						scoreInt += 1
 					elif score == 3:
 						scoreExp += 1
-
+					# print(f"failed {filename}" if score==0 else "Completed")
+					# print("Failed" if score == 0 else "Completed!")
 					numScores += 1
 					sumScores += score
 					

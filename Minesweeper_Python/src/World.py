@@ -101,9 +101,13 @@ class World():
 						break
 			except ValueError:
 				print("Error: Invalid action!")
+				
 			except IndexError:
+				
+				print(self.__ai.probabilityBoard)
+				print(action.__dict__)
 				print("Error: Move is out of bounds!")
-
+				
 			if self.__debug and type(self.__ai) != ManualAI:
 				input("Press ENTER to continue...")
 		self.__handleGameover()

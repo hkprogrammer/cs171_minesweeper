@@ -1,0 +1,4 @@
+easy: 0
+medium: 0
+expert: 0
+score: 0

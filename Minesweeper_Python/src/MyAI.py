@@ -17,17 +17,26 @@ from Action import Action
 
 
 class MyAI( AI ):
-
-
 	def __init__(self, rowDimension, colDimension, totalMines, startX, startY):
 		self.rowDimension = rowDimension
 		self.colDimension = colDimension
 		self.totalMines = totalMines
 		self.currentX = startX
 		self.currentY = startY
-
-		self.coveredTiles = rowDimension * colDimension
+		self.probabilityBoard = [[-1 for j in range(colDimension)] for i in range(rowDimension)] #records the probability of a square being a mine or safe.
+		self.queue = [(startX,startY)]
+		self.coveredTiles = (rowDimension * colDimension) + 1
 		self.board = [[None for j in range(colDimension)] for i in range(rowDimension)]
+		self.version = 1
+		self.potentialNeighbors = [(-1,0),(-1,1),(-1,-1),(0,1),(0,-1),(1,0),(1,-1),(1,1)]
+		self.previousStep = (startX,startY)
+		self.visited = []
+		# for x,y in self.potentialNeighbors:
+		# 	if self.inBounds(startX+x,startY+y):
+		# 		self.queue.append((startX+x,startY+y))
+		# 		self.probabilityBoard[startY+y][startX+x] = 0
+		
+
 		
 
 	def getAction(self, number: int) -> "Action Object":
@@ -37,17 +46,118 @@ class MyAI( AI ):
 		# print(self.coveredTiles)
 		# print(self.currentX, self.currentY)
 		# print()
-
+		# print(f"uncovered {self.coveredTiles} totalMines {self.totalMines}")
 		if self.coveredTiles == self.totalMines:
 			return Action(AI.Action.LEAVE)
-		if number == 0:
-			self.getActionZero()
-		if number == 1:
-			self.getActionOne()
+		if self.version == 0:
+			if number == 0:
+				self.getActionZero()
+			if number == 1:
+				self.getActionOne()
 
-		return Action(AI.Action.UNCOVER, self.currentX, self.currentY)
-	
+			return Action(AI.Action.UNCOVER, self.currentX, self.currentY)
+		elif self.version == 1:
+			#using probability to calculate the potential safest square.
+			return self.bfs(number)
+			
+		else:
+			return Action(AI.Action.LEAVE)
+	def bfs(self,number):
+		
+		lx,ly = self.previousStep
+		print("Was on square ",lx+1,ly+1)
+		for x,y in self.potentialNeighbors:
+			nx,ny = lx+x,ly+y
+			if self.inBounds(nx,ny):
+				
+				if self.probabilityBoard[ny][nx] == "#":
+					#square already discovered
+					continue
+				
+				if number == 0:
+					self.probabilityBoard[ny][nx] = 0
+					if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
+						self.queue.append((nx,ny))
+					continue
+				if self.probabilityBoard[ny][nx] == 0:
+					continue
+				if self.probabilityBoard[ny][nx] == -1:
+					# print(f"changed {ny},{nx} to {number}")
+					self.probabilityBoard[ny][nx] = number
+				else:
+					self.probabilityBoard[ny][nx] += number
+					
+		if len(self.queue) > 0:
+			print("using bfs")
+			cx,cy = self.queue.pop(0)
+			
+			print(self.probabilityBoard)
+			print(self.queue)
+			print(f"original cx,cy: ",cx,cy)
+			# while (cx,cy) in self.visited:
+			# 	cx,cy = self.queue.pop(0)
+			if len(self.queue) == 0 and self.probabilityBoard[cy][cx] == "#":
+				return self.minVal(number)
+   
+			if len(self.queue) == 0 and self.probabilityBoard[cy][cx] >0:
+				return self.minVal(number)
+			while self.probabilityBoard[cy][cx] == "#":
+				cx,cy = self.probabilityBoard.pop(0)
 
+			while self.probabilityBoard[cy][cx] > 0:
+				self.queue.append(self.queue.pop(0))
+				cx,cy = self.queue.pop(0)
+			print(f"modified cx,cy: ",cx,cy)
+			if (cx,cy) not in self.visited:
+				self.coveredTiles -= 1
+			print(number)
+			self.probabilityBoard[cy][cx] = "#"
+			self.visited.append((cx,cy))
+			for x,y in self.potentialNeighbors:
+				nx,ny = cx+x,cy+y
+				if self.inBounds(nx,ny):
+					if self.probabilityBoard[ny][nx] == 0 or self.probabilityBoard[ny][nx] == -1:
+						if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
+							self.queue.append((nx,ny))
+			print("uncovering ",cx+1,cy+1)
+			print(self.queue)
+			self.previousStep = (cx,cy)
+
+			
+			return Action(AI.Action.UNCOVER,cx,cy)
+		else:
+			return self.minVal(number)
+			
+	def minVal(self,number):
+		print("USING MINVAL")
+		minVal = float("inf")
+		minX,minY = None,None
+		for i in range(len(self.probabilityBoard)):
+			for j in range(len(self.probabilityBoard[i])):
+				if self.probabilityBoard[i][j] == "#":
+					continue
+				if self.probabilityBoard[i][j] == -1:
+					minY = i
+					minX = j
+					break
+				if self.probabilityBoard[i][j] < minVal:
+					minY = i
+					minX = j	
+					minVal = self.probabilityBoard[i][j]
+		
+		if minX != None and minY != None:
+			print(minX+1,minY+1)
+			if (minX,minY) not in self.queue and (minX,minY) not in self.visited:
+				self.queue.append((minX,minY))
+				self.coveredTiles -=1
+				self.previousStep = (minX,minY)
+				self.probabilityBoard[minY][minX] = "#"
+				self.visited.append((minX,minY))
+				return Action(AI.Action.UNCOVER,minX,minY)
+
+			else:
+				# pick a random spot.
+				pass
 	def getActionZero(self):
 		if self.isValidMove(self.currentX + 1, self.currentY):
 			self.currentX += 1
