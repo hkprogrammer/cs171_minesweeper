@@ -31,6 +31,8 @@ class MyAI( AI ):
 		self.potentialNeighbors = [(-1,0),(-1,1),(-1,-1),(0,1),(0,-1),(1,0),(1,-1),(1,1)]
 		self.previousStep = (startX,startY)
 		self.visited = []
+		self.flagQueue = []
+		self.flagVisited = []
 		# for x,y in self.potentialNeighbors:
 		# 	if self.inBounds(startX+x,startY+y):
 		# 		self.queue.append((startX+x,startY+y))
@@ -66,6 +68,13 @@ class MyAI( AI ):
 		
 		lx,ly = self.previousStep
 		print("Was on square ",lx+1,ly+1)
+		
+		if len(self.flagQueue) > 0:
+			return self.executeFlag()
+  
+  
+  
+		# this gives the neighbors their number
 		for x,y in self.potentialNeighbors:
 			nx,ny = lx+x,ly+y
 			if self.inBounds(nx,ny):
@@ -86,31 +95,44 @@ class MyAI( AI ):
 					self.probabilityBoard[ny][nx] = number
 				else:
 					self.probabilityBoard[ny][nx] += number
-					
+		self.prettyPrint()
+		
+  
 		if len(self.queue) > 0:
 			print("using bfs")
 			cx,cy = self.queue.pop(0)
 			
-			print(self.probabilityBoard)
-			print(self.queue)
-			print(f"original cx,cy: ",cx,cy)
+			
+			# print(self.queue)
+			# print(self.visited)
+			print(f"original cx,cy: ",cx+1,cy+1)
 			# while (cx,cy) in self.visited:
 			# 	cx,cy = self.queue.pop(0)
 			if len(self.queue) == 0 and self.probabilityBoard[cy][cx] == "#":
-				return self.minVal(number)
+				return self.minVal(number,cx,cy)
    
-			if len(self.queue) == 0 and self.probabilityBoard[cy][cx] >0:
-				return self.minVal(number)
-			while self.probabilityBoard[cy][cx] == "#":
-				cx,cy = self.probabilityBoard.pop(0)
+			if len(self.queue) == 0 and self.probabilityBoard[cy][cx] > 0:
+				1/0
+				r = self.rescan(number,cx,cy)
+				if r:
+					#there are more stuff in self.queue
+					cx,cy = self.queue.pop(0)
+				else:
+					return self.executeFlag()
+				
+
+			while self.probabilityBoard[cy][cx] == "#" or self.probabilityBoard[cy][cx] in self.visited:
+				cx,cy = self.queue.pop(0)
 
 			while self.probabilityBoard[cy][cx] > 0:
-				self.queue.append(self.queue.pop(0))
-				cx,cy = self.queue.pop(0)
-			print(f"modified cx,cy: ",cx,cy)
+				if len(self.queue) >0:
+					cx,cy = self.queue.pop(0)
+				else:
+					return self.minVal(number,cx,cy)
+			print(f"modified cx,cy: ",cx+1,cy+1)
 			if (cx,cy) not in self.visited:
 				self.coveredTiles -= 1
-			print(number)
+			
 			self.probabilityBoard[cy][cx] = "#"
 			self.visited.append((cx,cy))
 			for x,y in self.potentialNeighbors:
@@ -120,7 +142,7 @@ class MyAI( AI ):
 						if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
 							self.queue.append((nx,ny))
 			print("uncovering ",cx+1,cy+1)
-			print(self.queue)
+			# print(self.queue)
 			self.previousStep = (cx,cy)
 
 			
@@ -128,27 +150,71 @@ class MyAI( AI ):
 		else:
 			return self.minVal(number)
 			
-	def minVal(self,number):
+
+	def executeFlag(self):
+		print("USING execute FLAG")
+		self.prettyPrint()
+		cx,cy = self.flagQueue.pop(0)
+		while (cx,cy) in self.flagVisited:
+			cx,cy = self.flagQueue.pop(0)
+		#cx cy is the square to flag
+  
+		self.flagVisited.append((cx,cy))
+		self.visited.append((cx,cy))
+		self.probabilityBoard[cy][cx] = "#"
+		print("FLAGGING ",cx+1,cy+1)
+		return Action(AI.Action.FLAG,cx,cy)
+	
+			
+		
+   
+   
+   
+	def minVal(self,number,cx,cy):
+		
+		
+     
 		print("USING MINVAL")
 		minVal = float("inf")
 		minX,minY = None,None
+		backups = []
+		numberings = []
 		for i in range(len(self.probabilityBoard)):
 			for j in range(len(self.probabilityBoard[i])):
 				if self.probabilityBoard[i][j] == "#":
 					continue
 				if self.probabilityBoard[i][j] == -1:
-					minY = i
-					minX = j
-					break
-				if self.probabilityBoard[i][j] < minVal:
+					backUpY = i	
+					backUpX = j
+					backups.append((backUpX,backUpY))
+					continue
+				if self.probabilityBoard[i][j] <= minVal:
 					minY = i
 					minX = j	
 					minVal = self.probabilityBoard[i][j]
+					numberings.append(minVal)
 		
+		if numberings.count(minVal) > 1:
+			# there exist more than 1 potential square of the same number to be discovered
+			r = self.rescan(number,cx,cy)
+			if r:
+				#there are more stuff in self.queue
+				minX,minY = self.queue.pop(0)
+				
+			else:
+				return self.executeFlag()
+
+  
 		if minX != None and minY != None:
 			print(minX+1,minY+1)
+			
+			if len(backups) == 1:
+				minX, minY = backups.pop(0)
+   
+   
 			if (minX,minY) not in self.queue and (minX,minY) not in self.visited:
-				self.queue.append((minX,minY))
+				if len(self.queue) == 0:
+					self.queue.append((minX,minY))
 				self.coveredTiles -=1
 				self.previousStep = (minX,minY)
 				self.probabilityBoard[minY][minX] = "#"
@@ -156,8 +222,68 @@ class MyAI( AI ):
 				return Action(AI.Action.UNCOVER,minX,minY)
 
 			else:
-				# pick a random spot.
 				pass
+	
+	def rescan(self,number,cx,cy) -> bool:
+		print("Rescanning")
+		for y in range(len(self.probabilityBoard)):
+			for x in range(len(self.probabilityBoard[y])):
+				if self.probabilityBoard[y][x] == "#" or self.probabilityBoard[y][x] == -1:
+					continue
+				cx,cy = x,y
+				emptySquares = []
+				flaggedSquares = []
+				for x,y in self.potentialNeighbors:
+					nx,ny = cx+x,cy+y
+					if self.inBounds(nx,ny):
+			
+						if (nx,ny) not in self.visited and (nx,ny) not in self.flagQueue:
+							emptySquares.append((nx,ny))
+						elif (nx,ny) in self.flagVisited:
+							flaggedSquares.append((nx,ny))
+				
+				#case 1
+				# if number of flagged squares equal to the number, then all undiscovered are safe
+				if len(flaggedSquares) == number:
+					self.queue.extend(emptySquares)
+					return True
+				#case 2
+				# if number equals to the the number of undiscovered, then all undiscovered are flags
+				elif len(emptySquares) == number:
+					self.flagQueue.extend(emptySquares)
+					return False
+
+		raise Exception
+
+  
+				
+					
+		
+		
+ 
+ 
+	def prettyPrint(self):
+		print(" ",end="")
+		for r in range(self.rowDimension - 1, -1, -1):
+			print(str(r+1).ljust(2) + '|', end=" ")
+			for c in range(self.colDimension):
+				if self.probabilityBoard[r][c] == -1:
+					print(". ",end=" ")
+				elif self.probabilityBoard[r][c] == "#":
+					print("V ",end = " ")
+				else:
+					print(f"{self.probabilityBoard[r][c]} ", end= " ")
+			if (r != 0):
+				print('\n', end=" ")
+		column_label = "     "
+		column_border = "   "
+		for c in range(1, self.colDimension+1):
+			column_border += "---"
+			column_label += str(c).ljust(3)
+		print("")
+		print(column_border)
+		print(column_label)
+ 
 	def getActionZero(self):
 		if self.isValidMove(self.currentX + 1, self.currentY):
 			self.currentX += 1

@@ -99,11 +99,12 @@ class World():
 				if self.__checkValidAction(action):
 					if self.__doMove(action):
 						break
-			except ValueError:
+			except ValueError as ex:
+				raise ex
 				print("Error: Invalid action!")
 				
-			except IndexError:
-				
+			except IndexError as ex:
+				raise ex
 				print(self.__ai.probabilityBoard)
 				print(action.__dict__)
 				print("Error: Move is out of bounds!")
