@@ -49,7 +49,6 @@ from ManualAI import ManualAI
 from RandomAI import RandomAI
 from MyAI import MyAI
 
-
 def main():
 
 	# Create parser
@@ -103,6 +102,7 @@ def main():
 			scoreBeg = 0
 			scoreInt = 0
 			scoreExp = 0
+			
 			for dirpath, _, filenames in directory:
 				for filename in filenames:
 					f = os.path.join(dirpath, filename)
@@ -112,14 +112,16 @@ def main():
 					score = world.run()
 					if score == 1:
 						scoreBeg += 1
+						
 					elif score == 2:
 						scoreInt += 1
 					elif score == 3:
 						scoreExp += 1
-
+					# print("failed" + str(filename) if score==0 else "Completed")
+					# print("Failed" if score == 0 else "Completed!")
 					numScores += 1
 					sumScores += score
-					
+				
 			print("---------------Your agent's results:---------------")
 			print("Beginner: {} \tIntermediate: {} \tExpert: {}".format(scoreBeg, scoreInt, scoreExp))
 			print("Cumulative Score: " + str(sumScores))
@@ -142,9 +144,9 @@ def main():
 			world = World(filename=inputFile, aiType=aiType, verbose=verbose, debug=debug)
 			score = world.run()
 			if score > 0:
-			    print("WORLD COMPLETE")
+				print("WORLD COMPLETE")
 			else:
-			    print("WORLD INCOMPLETE")
+				print("WORLD INCOMPLETE")
 
 		# If inputFileis an invalid path
 		else:

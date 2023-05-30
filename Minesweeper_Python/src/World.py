@@ -26,7 +26,7 @@ class World():
 		covered = True
 		flag = False
 		number = 0
-		
+
 
 	def __init__(self, filename=None, aiType="myai", verbose=False, debug=False):
 		self.__verbose = verbose
@@ -59,7 +59,7 @@ class World():
 					self.__uncoverTile(firstMoveCoords[0], firstMoveCoords[1])
 					self.__lastTile = (firstMoveCoords[0]+1, firstMoveCoords[1]+1)
 					self.__lastAction = "UNCOVER"
-					
+
 		# If file not provided, construct board using defaults
 			else:
 				self.__createBoard()
@@ -197,7 +197,7 @@ class World():
 			self.__rowDimension = 8		# Default size
 
 			self.__board = [[self.__Tile() for i in range(self.__rowDimension)] for j in range(self.__colDimension)]
-		
+
 		self.__movesLimit = self.__colDimension * self.__rowDimension * 2
 
 
@@ -232,7 +232,7 @@ class World():
 					self.__addMine(c, r)
 					currentMines += 1
 
-					
+
 	def __addMine(self, c: int, r: int) -> None:
 		""" Add mine to tile located at (c, r) and update the Tile.mine attrbute """
 		self.__board[c][r].mine = True
@@ -360,7 +360,7 @@ class World():
 			print('? ', end=" ")
 		elif self.__board[c][r].covered:
 			print('. ', end=" ")
-		
+
 
 	#####################################################
 	#		         HELPER FUNCTIONS					#
