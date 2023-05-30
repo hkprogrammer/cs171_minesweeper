@@ -14,7 +14,7 @@
 
 from AI import AI
 from Action import Action
-
+import random
 
 class MyAI( AI ):
 	def __init__(self, rowDimension, colDimension, totalMines, startX, startY):
@@ -69,6 +69,7 @@ class MyAI( AI ):
 			return Action(AI.Action.LEAVE)
 	def bfs(self,number):
 		
+		# print(self.flagQueue)
 		
 		
   
@@ -105,7 +106,7 @@ class MyAI( AI ):
 				else:
 					# self.probabilityBoard[ny][nx] += number
 					self.probabilityBoard[ny][nx] += 1
-     
+		# print(self.queue)
 		
   
 		if len(self.queue) > 0:
@@ -237,10 +238,6 @@ class MyAI( AI ):
   
 		if minX != None and minY != None:
 			# print(minX+1,minY+1)
-			
-			if len(backups) == 1:
-				minX, minY = backups.pop(0)
-   
    
 			if (minX,minY) not in self.queue and (minX,minY) not in self.visited:
 				if len(self.queue) == 0:
@@ -254,6 +251,20 @@ class MyAI( AI ):
 
 			else:
 				pass
+		if len(backups) >= 1:
+			# print("using backups")
+			#make a random move
+			rInt = random.randint(0,len(backups)-1)
+			minX, minY = backups.pop(rInt)
+			if len(self.queue) == 0:
+				self.queue.append((minX,minY))
+			self.coveredTiles -=1
+			self.previousStep = (minX,minY)
+			self.probabilityBoard[minY][minX] = "#"
+			self.visited.append((minX,minY))
+			self.previousStep = (minX,minY)
+			return Action(AI.Action.UNCOVER,minX,minY)
+			
 	
 	def rescan(self,number=-1) -> bool:
 		# print("Rescanning")
