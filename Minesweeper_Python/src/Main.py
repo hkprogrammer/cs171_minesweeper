@@ -48,7 +48,6 @@ from World import World
 from ManualAI import ManualAI
 from RandomAI import RandomAI
 from MyAI import MyAI
-from tqdm import tqdm
 
 def main():
 
@@ -105,7 +104,7 @@ def main():
 			scoreExp = 0
 			
 			for dirpath, _, filenames in directory:
-				for filename in  tqdm(filenames):
+				for filename in filenames:
 					f = os.path.join(dirpath, filename)
 
 					world = World(filename=f, aiType=aiType, verbose=verbose, debug=debug)

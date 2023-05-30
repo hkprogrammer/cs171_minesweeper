@@ -34,7 +34,7 @@ class MyAI( AI ):
 		self.flagQueue = []
 		self.flagVisited = []
 		self.numberBoard = [[-1 for j in range(colDimension)] for i in range(rowDimension)] 
-		self.originalNumberBoard = list(self.numberBoard)
+		# self.originalNumberBoard = list(self.numberBoard)
 
 		# for x,y in self.potentialNeighbors:
 		# 	if self.inBounds(startX+x,startY+y):
@@ -75,8 +75,8 @@ class MyAI( AI ):
 		lx,ly = self.previousStep
 
 		self.numberBoard[ly][lx] = number if number >=0 else -2
-		self.originalNumberBoard = list(self.numberBoard)
-		print("Was on square ",lx+1,ly+1)
+		# self.originalNumberBoard = list(self.numberBoard)
+		# print("Was on square ",lx+1,ly+1)
 		
 		if len(self.flagQueue) > 0:
 			return self.executeFlag()
@@ -115,7 +115,7 @@ class MyAI( AI ):
 			
 			# print(self.queue)
 			# print(self.visited)
-			print(f"original cx,cy: ",cx+1,cy+1)
+			# print("original cx,cy: ",cx+1,cy+1)
 			# while (cx,cy) in self.visited:
 			# 	cx,cy = self.queue.pop(0)
 			if len(self.queue) == 0 and self.probabilityBoard[cy][cx] == "#":
@@ -141,10 +141,10 @@ class MyAI( AI ):
 					cx,cy = self.queue.pop(0)
 				else:
 					return self.minVal(number)
-			self.prettyPrint(self.probabilityBoard)
-			self.prettyPrint(self.numberBoard)
-			print("using bfs")
-			print(f"modified cx,cy: ",cx+1,cy+1)
+			# self.prettyPrint(self.probabilityBoard)
+			# self.prettyPrint(self.numberBoard)
+			# print("using bfs")
+			# print("modified cx,cy: ",cx+1,cy+1)
 			if (cx,cy) not in self.visited:
 				self.coveredTiles -= 1
 			
@@ -156,7 +156,7 @@ class MyAI( AI ):
 					if self.probabilityBoard[ny][nx] == 0 or self.probabilityBoard[ny][nx] == -1:
 						if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
 							self.queue.append((nx,ny))
-			print("uncovering ",cx+1,cy+1)
+			# print("uncovering ",cx+1,cy+1)
 			# print(self.queue)
 			self.previousStep = (cx,cy)
 
@@ -167,7 +167,7 @@ class MyAI( AI ):
 			
 
 	def executeFlag(self):
-		print("USING execute FLAG")
+		# print("USING execute FLAG")
 		# self.prettyPrint(self.probabilityBoard)
 		cx,cy = self.flagQueue.pop(0)
 		while (cx,cy) in self.flagVisited:
@@ -177,15 +177,15 @@ class MyAI( AI ):
 		self.flagVisited.append((cx,cy))
 		self.visited.append((cx,cy))
 		self.probabilityBoard[cy][cx] = "#"
-		print("FLAGGING ",cx+1,cy+1)
+		# print("FLAGGING ",cx+1,cy+1)
 		self.previousStep = (cx,cy)
 		self.numberBoard[cy][cx] = -2
 	
-		for x,y in self.potentialNeighbors:
-			nx,ny = cx+x,cy+y
-			if self.inBounds(nx,ny):
-				if self.numberBoard[ny][nx] > 0:
-					self.numberBoard[ny][nx] -= 1
+		# for x,y in self.potentialNeighbors:
+		# 	nx,ny = cx+x,cy+y
+		# 	if self.inBounds(nx,ny):
+		# 		if self.numberBoard[ny][nx] > 0:
+		# 			self.numberBoard[ny][nx] -= 1
       
   
   
@@ -200,9 +200,9 @@ class MyAI( AI ):
 	def minVal(self,number):
 		
 		
-		self.prettyPrint(self.probabilityBoard)
-		self.prettyPrint(self.numberBoard)
-		print("USING MINVAL")
+		# self.prettyPrint(self.probabilityBoard)
+		# self.prettyPrint(self.numberBoard)
+		# print("USING MINVAL")
 		minVal = float("inf")
 		minX,minY = None,None
 		backups = []
@@ -236,7 +236,7 @@ class MyAI( AI ):
 
   
 		if minX != None and minY != None:
-			print(minX+1,minY+1)
+			# print(minX+1,minY+1)
 			
 			if len(backups) == 1:
 				minX, minY = backups.pop(0)
@@ -256,8 +256,8 @@ class MyAI( AI ):
 				pass
 	
 	def rescan(self,number=-1) -> bool:
-		print("Rescanning")
-		print(self.numberBoard)
+		# print("Rescanning")
+		# print(self.numberBoard)
 		for y in range(len(self.numberBoard)):
 			for x in range(len(self.numberBoard[y])):
 				
@@ -292,24 +292,24 @@ class MyAI( AI ):
     
     
 				# if number of flagged squares equal to the number, then all undiscovered are safe
-				if len(flaggedSquares) == self.originalNumberBoard[cy][cx]:
+				if len(flaggedSquares) == self.numberBoard[cy][cx]:
 					self.queue.extend(emptySquares)
 					# print(emptySquares)
-					print("using queue")
-					print(self.queue)
-					print(flaggedSquares)
-					print(emptySquares)
-					print("from ", cx+1,cy+1, "number = ", self.numberBoard[cy][cx])
+					# print("using queue")
+					# print(self.queue)
+					# print(flaggedSquares)
+					# print(emptySquares)
+					# print("from ", cx+1,cy+1, "number = ", self.numberBoard[cy][cx])
 					return True
 				#case 2
 				# if number equals to the the number of undiscovered, then all undiscovered are flags
-				elif len(emptySquares) == self.numberBoard[cy][cx]:
+				elif len(emptySquares) == self.numberBoard[cy][cx] - len(flaggedSquares):
 					self.flagQueue.extend(emptySquares)
-					print("using flags")
-					print(self.flagQueue)
-					print(flaggedSquares)
-					print(emptySquares)
-					print("from ", cx+1,cy+1, "number = ", self.numberBoard[cy][cx])
+					# print("using flags")
+					# print(self.flagQueue)
+					# print(flaggedSquares)
+					# print(emptySquares)
+					# print("from ", cx+1,cy+1, "number = ", self.numberBoard[cy][cx])
 					return False
 
 		# return Action(AI.Action.LEAVE)
@@ -332,7 +332,7 @@ class MyAI( AI ):
 				elif board[r][c] == "#":
 					print("/ ",end = " ")
 				else:
-					print(f"{board[r][c]} ", end= " ")
+					print(str(board[r][c]) + " ", end= " ")
 			if (r != 0):
 				print('\n', end=" ")
 		column_label = "     "
