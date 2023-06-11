@@ -27,6 +27,7 @@ class MyAI( AI ):
 		self.queue = [(startX,startY)]
 		self.coveredTiles = (rowDimension * colDimension) + 1
 		self.board = [[None for j in range(colDimension)] for i in range(rowDimension)]
+		
 		self.version = 1
 		self.potentialNeighbors = [(-1,0),(-1,1),(-1,-1),(0,1),(0,-1),(1,0),(1,-1),(1,1)]
 		self.previousStep = (startX,startY)
@@ -34,6 +35,7 @@ class MyAI( AI ):
 		self.flagQueue = []
 		self.flagVisited = []
 		self.numberBoard = [[-1 for j in range(colDimension)] for i in range(rowDimension)] 
+		
 		# self.originalNumberBoard = list(self.numberBoard)
 
 		# for x,y in self.potentialNeighbors:
@@ -46,12 +48,15 @@ class MyAI( AI ):
 
 	def getAction(self, number: int) -> "Action Object":
 		self.updateBoard(self.currentX, self.currentY, number)
+		
+		
 		# for i in self.board:
 		# 	print(i)
 		# print(self.coveredTiles)
 		# print(self.currentX, self.currentY)
 		# print()
 		# print(f"uncovered {self.coveredTiles} totalMines {self.totalMines}")
+		
 		if self.coveredTiles == self.totalMines:
 			return Action(AI.Action.LEAVE)
 		if self.version == 0:
@@ -68,7 +73,6 @@ class MyAI( AI ):
 		else:
 			return Action(AI.Action.LEAVE)
 	def bfs(self,number):
-		
 		# print(self.flagQueue)
 		
 		
@@ -85,30 +89,31 @@ class MyAI( AI ):
   
   
 		# this gives the neighbors their number
-		for x,y in self.potentialNeighbors:
-			nx,ny = lx+x,ly+y
-			if self.inBounds(nx,ny):
-				
-				if self.probabilityBoard[ny][nx] == "#":
-					#square already discovered
-					continue
-				
-				if number == 0:
-					self.probabilityBoard[ny][nx] = 0
-					if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
-						self.queue.append((nx,ny))
-					continue
-				if self.probabilityBoard[ny][nx] == 0:
-					continue
-				if self.probabilityBoard[ny][nx] == -1:
-					# print(f"changed {ny},{nx} to {number}")
-					self.probabilityBoard[ny][nx] = number
-				else:
-					# self.probabilityBoard[ny][nx] += number
-					self.probabilityBoard[ny][nx] += 1
-		# print(self.queue)
+		if number != -1:
+			for x,y in self.potentialNeighbors:
+				nx,ny = lx+x,ly+y
+				if self.inBounds(nx,ny):
+					
+					if self.probabilityBoard[ny][nx] == "#":
+						#square already discovered
+						continue
+					
+					if number == 0:
+						self.probabilityBoard[ny][nx] = 0
+						if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
+							self.queue.append((nx,ny))
+						continue
+					if self.probabilityBoard[ny][nx] == 0:
+						continue
+					if self.probabilityBoard[ny][nx] == -1:
+						# print(f"changed {ny},{nx} to {number}")
+						self.probabilityBoard[ny][nx] = number
+					else:
+						# self.probabilityBoard[ny][nx] += number
+						self.probabilityBoard[ny][nx] += number
 		
-  
+		print(self.queue)	
+
 		if len(self.queue) > 0:
 			
 			cx,cy = self.queue.pop(0)
@@ -142,10 +147,10 @@ class MyAI( AI ):
 					cx,cy = self.queue.pop(0)
 				else:
 					return self.minVal(number)
-			# self.prettyPrint(self.probabilityBoard)
-			# self.prettyPrint(self.numberBoard)
-			# print("using bfs")
-			# print("modified cx,cy: ",cx+1,cy+1)
+			self.prettyPrint(self.probabilityBoard)
+			self.prettyPrint(self.numberBoard)
+			print("using bfs")
+			print("modified cx,cy: ",cx+1,cy+1)
 			if (cx,cy) not in self.visited:
 				self.coveredTiles -= 1
 			
@@ -157,7 +162,7 @@ class MyAI( AI ):
 					if self.probabilityBoard[ny][nx] == 0 or self.probabilityBoard[ny][nx] == -1:
 						if (nx,ny) not in self.visited and (nx,ny) not in self.queue:
 							self.queue.append((nx,ny))
-			# print("uncovering ",cx+1,cy+1)
+			print("uncovering ",cx+1,cy+1)
 			# print(self.queue)
 			self.previousStep = (cx,cy)
 
@@ -168,26 +173,35 @@ class MyAI( AI ):
 			
 
 	def executeFlag(self):
-		# print("USING execute FLAG")
-		# self.prettyPrint(self.probabilityBoard)
+		print("USING execute FLAG")
+		self.prettyPrint(self.probabilityBoard)
 		cx,cy = self.flagQueue.pop(0)
-		while (cx,cy) in self.flagVisited:
+		print(f"atttempting to flag {cx+1}, {cy+1}")
+		while (cx,cy) in self.flagVisited and len(self.flagQueue) > 0:
 			cx,cy = self.flagQueue.pop(0)
+			if len(self.flagQueue) == 0:
+				raise AssertionError
+
 		#cx cy is the square to flag
   
 		self.flagVisited.append((cx,cy))
 		self.visited.append((cx,cy))
 		self.probabilityBoard[cy][cx] = "#"
-		# print("FLAGGING ",cx+1,cy+1)
+		print("FLAGGING ",cx+1,cy+1)
 		self.previousStep = (cx,cy)
 		self.numberBoard[cy][cx] = -2
-	
-		# for x,y in self.potentialNeighbors:
-		# 	nx,ny = cx+x,cy+y
-		# 	if self.inBounds(nx,ny):
-		# 		if self.numberBoard[ny][nx] > 0:
-		# 			self.numberBoard[ny][nx] -= 1
-      
+		
+		print(self.probabilityBoard)
+		for x,y in self.potentialNeighbors:
+			nx,ny = cx+x,cy+y
+			if self.inBounds(nx,ny):
+				if self.probabilityBoard[ny][nx] == "#":
+					continue
+				if self.probabilityBoard[ny][nx] > 0:
+					print(self.probabilityBoard[ny][nx])
+					self.probabilityBoard[ny][nx] -= 1
+					print(self.probabilityBoard[ny][nx])
+		print(self.probabilityBoard)
   
   
   
@@ -201,13 +215,15 @@ class MyAI( AI ):
 	def minVal(self,number):
 		
 		
-		# self.prettyPrint(self.probabilityBoard)
-		# self.prettyPrint(self.numberBoard)
-		# print("USING MINVAL")
+		self.prettyPrint(self.probabilityBoard)
+		self.prettyPrint(self.numberBoard)
+		print("USING MINVAL")
 		minVal = float("inf")
 		minX,minY = None,None
 		backups = []
 		numberings = []
+		numberingsPos = []
+		foursToFlag = []
 		for i in range(len(self.probabilityBoard)):
 			for j in range(len(self.probabilityBoard[i])):
 				if self.probabilityBoard[i][j] == "#":
@@ -222,22 +238,47 @@ class MyAI( AI ):
 					minX = j	
 					minVal = self.probabilityBoard[i][j]
 					numberings.append(minVal)
+					numberingsPos.append((minX,minY))
+				if self.probabilityBoard[i][j] >=3:
+					#threshold
+					foursToFlag.append((j,i))
 		
+		
+  
+  
 		try:
 			r = self.rescan(number)
 			if r:
 				#there are more stuff in self.queue
 				minX,minY = self.queue.pop(0)
+				print("will uncover ", minX+1, minY+1)
 				
 			else:
+				print("will flag ", self.flagQueue[0][0]+1, self.flagQueue[0][1] + 1)
 				return self.executeFlag()
 		except Exception:
 			#meaning no squres are able to be find from rescan
 			pass
 
+
+		if len(foursToFlag)>0:
+			#flag these squares
+			self.flagQueue.append(foursToFlag.pop(0))
+			return self.executeFlag()
+		
   
 		if minX != None and minY != None:
 			# print(minX+1,minY+1)
+   
+			if numberings.count(minVal) > 1:
+				
+				coords = []
+				for i in range(len(numberings)):
+					if numberings[i] == minVal:
+						coords.append(numberingsPos[i])
+				minX,minY = random.choice(coords)
+				print(f"choosen random from ({minX}, {minY}) -> {coords}")
+      
    
 			if (minX,minY) not in self.queue and (minX,minY) not in self.visited:
 				if len(self.queue) == 0:
@@ -249,10 +290,10 @@ class MyAI( AI ):
 				self.previousStep = (minX,minY)
 				return Action(AI.Action.UNCOVER,minX,minY)
 
-			else:
-				pass
+
+		
 		if len(backups) >= 1:
-			# print("using backups")
+			print("using backups")
 			#make a random move
 			rInt = random.randint(0,len(backups)-1)
 			minX, minY = backups.pop(rInt)
@@ -267,7 +308,7 @@ class MyAI( AI ):
 			
 	
 	def rescan(self,number=-1) -> bool:
-		# print("Rescanning")
+		print("Rescanning")
 		# print(self.numberBoard)
 		for y in range(len(self.numberBoard)):
 			for x in range(len(self.numberBoard[y])):
@@ -332,6 +373,7 @@ class MyAI( AI ):
  
  
 	def prettyPrint(self,board):
+		print("printing out ", self.namestr(board,self.__dict__))
 		print(" ",end="")
 		for r in range(self.rowDimension - 1, -1, -1):
 			print(str(r+1).ljust(2) + '|', end=" ")
@@ -354,6 +396,11 @@ class MyAI( AI ):
 		print("")
 		print(column_border)
 		print(column_label)
+  
+	def namestr(self,obj, namespace):
+		return [name for name in namespace if namespace[name] is obj]
+
+ 
  
 	def getActionZero(self):
 		if self.isValidMove(self.currentX + 1, self.currentY):
@@ -494,8 +541,8 @@ class MyAI( AI ):
 
 
 	def updateBoard(self, x, y, val):
-		if self.board[x][y] == None:
-			self.board[x][y] = val
+		if self.board[y][x] == None:
+			self.board[y][x] = val
 			self.coveredTiles -= 1
 	
 

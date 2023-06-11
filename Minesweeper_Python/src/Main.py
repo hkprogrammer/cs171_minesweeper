@@ -106,9 +106,8 @@ def main():
 			for dirpath, _, filenames in directory:
 				for filename in filenames:
 					f = os.path.join(dirpath, filename)
-
 					world = World(filename=f, aiType=aiType, verbose=verbose, debug=debug)
-
+					
 					score = world.run()
 					if score == 1:
 						scoreBeg += 1
@@ -117,7 +116,7 @@ def main():
 						scoreInt += 1
 					elif score == 3:
 						scoreExp += 1
-					# print("failed" + str(filename) if score==0 else "Completed")
+					print("failed" + str(filename) if score==0 else "Completed")
 					# print("Failed" if score == 0 else "Completed!")
 					numScores += 1
 					sumScores += score
